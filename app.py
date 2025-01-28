@@ -7,28 +7,34 @@ from pulp import LpProblem, LpVariable, LpMinimize, lpSum, PULP_CBC_CMD
 st.title("Cálculo de Planos de Corte de Bobinas")
 
 # Entradas do usuário
-limite_inferior = st.number_input("Limite Inferior (%)", min_value=0.0, max_value=1.0, value=0.90, step=0.01)
-limite_superior = st.number_input("Limite Superior (%)", min_value=0.0, max_value=1.0, value=1.30, step=0.01)
-larguras_bobina = st.text_input("Larguras das Bobinas (separadas por vírgulas)", "1192,1191,1190,1189,1188")
-peso_bobina = st.number_input("Peso da Bobina (kg)", min_value=1, value=17715)
+limite_inferior = st.text_input("Limite Inferior (%)", "90")
+limite_superior = st.text_input("Limite Superior (%)", "130")
+
+try:
+    limite_inferior = float(limite_inferior) / 100
+    limite_superior = float(limite_superior) / 100
+except ValueError:
+    st.error("Os limites inferior e superior devem ser números válidos em porcentagem.")
+    st.stop()
+
+# Largura da bobina fixa
+larguras_bobina = [1192, 1191, 1190, 1189, 1188]
+peso_bobina = 17715
 
 # Entrada de demandas
-demands_input = st.text_area("Demandas (formato: largura,peso por linha)", "105,10000\n170,50000\n197,35000")
-
-
-# Processar larguras de bobinas
-larguras_bobina = [int(x.strip()) for x in larguras_bobina.split(",")]
+demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000
+197 ; 30000")
 
 # Processar demandas
 demands = []
-for line in demands_input.strip().split("\n"):  # Certifique-se de usar aspas corretas
+for line in demands_input.strip().split("
+"):
     try:
-        width, weight = map(int, line.split(","))
+        width, weight = map(int, line.split(";"))
         demands.append({"width": width, "weight": weight})
     except ValueError:
-        st.error("Formato de demandas inválido! Use largura,peso por linha.")
+        st.error("Formato de demandas inválido! Use largura ; peso por linha.")
         st.stop()
-
 
 # Definições dos produtos
 produtos = {
