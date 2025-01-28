@@ -10,8 +10,8 @@ limite_inferior = st.text_input("Limite Inferior (%)", "90")
 limite_superior = st.text_input("Limite Superior (%)", "130")
 
 try:
-    limite_inferior = float(limite_inferior) / 100
-    limite_superior = float(limite_superior) / 100
+    limite_inferior = limite_inferior / 100
+    limite_superior = limite_superior / 100
 except ValueError:
     st.error("Os limites inferior e superior devem ser números válidos em porcentagem.")
     st.stop()
