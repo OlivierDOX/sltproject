@@ -13,9 +13,8 @@ larguras_bobina = st.text_input("Larguras das Bobinas (separadas por vírgulas)"
 peso_bobina = st.number_input("Peso da Bobina (kg)", min_value=1, value=17715)
 
 # Entrada de demandas
-demands_input = st.text_area("Demandas (formato: largura,peso por linha)", "105,10000
-170,50000
-197,35000")
+demands_input = st.text_area("Demandas (formato: largura,peso por linha)", "105,10000\n170,50000\n197,35000")
+
 
 # Processar larguras de bobinas
 larguras_bobina = [int(x.strip()) for x in larguras_bobina.split(",")]
@@ -185,3 +184,4 @@ if st.button("Calcular"):
         )
     else:
         st.error("Nenhuma solução encontrada!")
+
