@@ -21,14 +21,14 @@ larguras_bobina = [int(x.strip()) for x in larguras_bobina.split(",")]
 
 # Processar demandas
 demands = []
-for line in demands_input.strip().split("
-"):
+for line in demands_input.strip().split("\n"):  # Certifique-se de usar aspas corretas
     try:
         width, weight = map(int, line.split(","))
         demands.append({"width": width, "weight": weight})
     except ValueError:
         st.error("Formato de demandas inválido! Use largura,peso por linha.")
         st.stop()
+
 
 # Definições dos produtos
 produtos = {
@@ -184,4 +184,5 @@ if st.button("Calcular"):
         )
     else:
         st.error("Nenhuma solução encontrada!")
+
 
