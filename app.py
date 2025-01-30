@@ -118,8 +118,9 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
                     "Puxada": puxada,
                 }
             )
-
-    return pd.DataFrame(resultado)
+    df_final2 = pd.DataFrame(resultado)
+    df_final2 = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
+    return 
 
 def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     pesos_totais = {demanda["width"]: 0 for demanda in demandas}
