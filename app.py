@@ -153,33 +153,27 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
 if st.button("Calcular"):
     melhor_resultado = None
     melhor_largura = None
-
     for largura_bobina in larguras_bobina:
         resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
         if resultado is not None:
             if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                 melhor_resultado = resultado
                 melhor_largura = largura_bobina
-
     if melhor_resultado is not None:
         proporcao = peso_bobina / melhor_largura
         tabela_final = gerar_tabela_final(melhor_resultado, demands, proporcao, produtos)
-
         st.subheader("Melhor largura de bobina")
         st.write(f"{melhor_largura} mm")
-
         st.subheader("Resultado dos Planos de Corte")
         st.dataframe(melhor_resultado)
-
         st.subheader("Tabela Final")
         st.dataframe(tabela_final)
-
-        # Download dos arquivos
+        resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
         st.download_button(
-            label="Baixar Resultado (CSV)",
-            data=tabela_final.to_csv(index=False).encode("utf-8"),
-            file_name="resultado_corte.csv",
-            mime="text/csv"
+            label="Baixar Resultado (TXT)",
+            data=resultado_txt.encode("utf-8"),
+            file_name="resultado_corte.txt",
+            mime="text/plain"
         )
     else:
         st.error("Nenhuma solução encontrada!")
