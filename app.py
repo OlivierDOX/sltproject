@@ -40,13 +40,16 @@ produtos = {
     343: "Perfil UDC Simples 200x75x2,00x6000mm"
 }
 
-# Interface de seleção de produtos e pesos
+larguras_slitters = list(produtos.keys())
+
 demands = []
+
+# Interface de seleção de perfil e peso
 total_itens = st.number_input("Quantos produtos deseja adicionar?", min_value=1, value=1, step=1)
 for i in range(total_itens):
-    produto = st.selectbox(f"Selecione o produto {i+1}", options=list(produtos.keys()), format_func=lambda x: produtos[x])
-    peso = st.number_input(f"Informe o peso para {produtos[produto]} (kg)", min_value=1, step=1)
-    demands.append({"width": produto, "weight": peso})
+    perfil = st.selectbox(f"Selecione o perfil {i+1}", options=list(produtos.keys()), format_func=lambda x: produtos[x])
+    peso = st.number_input(f"Informe o peso para {produtos[perfil]} (kg)", min_value=1, step=1)
+    demands.append({"width": perfil, "weight": peso})
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
@@ -108,7 +111,7 @@ if st.button("Calcular"):
     melhor_resultado = None
     melhor_largura = None
     for largura_bobina in larguras_bobina:
-        resultado = resolver_problema_corte(list(produtos.keys()), largura_bobina, peso_bobina, demands)
+        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
         if resultado is not None:
             if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                 melhor_resultado = resultado
