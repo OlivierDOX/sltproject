@@ -3,6 +3,8 @@ import pandas as pd
 from itertools import combinations_with_replacement
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, PULP_CBC_CMD
 
+st.set_page_config(layout="wide")
+
 st.title("Cálculo de Planos de Corte de Bobinas")
 
 # Entradas do usuário
