@@ -10,8 +10,6 @@ limite_inferior = st.text_input("Limite Inferior (%)", "90")
 limite_superior = st.text_input("Limite Superior (%)", "130")
 
 try:
-    limite_inferior = limite_inferior / 100
-    limite_superior = limite_superior / 100
     limite_inferior = float(limite_inferior) / 100
     limite_superior = float(limite_superior) / 100
 except ValueError:
@@ -23,11 +21,14 @@ larguras_bobina = [1192, 1191, 1190, 1189, 1188]
 peso_bobina = 17715
 
 # Entrada de demandas
+demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000
+197 ; 30000")
 demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000\\n197 ; 30000")
-
 
 # Processar demandas
 demands = []
+for line in demands_input.strip().split("
+"):
 for line in demands_input.strip().split("\n"):
     try:
         width, weight = map(int, line.split(";"))
