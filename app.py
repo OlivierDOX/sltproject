@@ -23,7 +23,6 @@ peso_bobina = 17715
 # Entrada de demandas
 demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000\\n197 ; 30000")
 
-
 # Processar demandas
 demands = []
 for line in demands_input.strip().split("\n"):
