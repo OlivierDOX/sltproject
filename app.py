@@ -125,7 +125,7 @@ def exibir_dataframe(df):
                 }
             )
 
-    return exibir_dataframe(pd.DataFrame(resultado))
+    return pd.DataFrame(resultado)
 
 def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     pesos_totais = {demanda["width"]: 0 for demanda in demandas}
@@ -159,9 +159,9 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     tabela_final.append(totais)
     df_final = pd.DataFrame(tabela_final)
     df_final = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
-    return exibir_dataframe(df_final)
+    return df_final
 
-
+    exibir_dataframe(df_final)
 
 
 
