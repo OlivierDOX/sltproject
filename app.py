@@ -161,7 +161,6 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     df_final = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
     return df_final
 
-    exibir_dataframe(df_final)
 
 
 
