@@ -47,7 +47,9 @@ larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
 with st.expander("Selecione os produtos"):
-    produtos_selecionados = [produto for produto in produtos.keys() if st.checkbox(produto)]
+    df_produtos = pd.DataFrame({"Produto": list(produtos.keys()), "Selecionado": [False] * len(produtos)})
+    df_editado = st.data_editor(df_produtos, num_rows="fixed", use_container_width=True, hide_index=True)
+    produtos_selecionados = df_editado[df_editado["Selecionado"] == True]["Produto"].tolist()
 
 demands = []
 for produto in produtos_selecionados:
