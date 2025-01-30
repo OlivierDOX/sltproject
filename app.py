@@ -118,37 +118,29 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
     return pd.DataFrame(resultado)
 
-def gerar_tabela_final(resultado, demandas, proporcao, produtos):
+def gerar_tabela_final(resultado, demandas, proporcao):
     pesos_totais = {demanda["width"]: 0 for demanda in demandas}
-
     for _, linha in resultado.iterrows():
         combinacao = linha["Plano de Corte"]
         quantidade = linha["Quantidade"]
-
-        for item in combinacao:
-            largura = int(item.split(" | ")[0])
+        for largura in combinacao:
             pesos_totais[largura] += quantidade * largura * proporcao
-
     tabela_final = []
     for demanda in demandas:
         largura = demanda["width"]
         peso_planejado = demanda["weight"]
         peso_total = pesos_totais.get(largura, 0)
         percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
-        produto = produtos.get(largura, "Produto Desconhecido")
-
-        tabela_final.append(
-            {
-                "Largura (mm)": largura,
-                "Produto": produto,
-                "Demanda Planejada (kg)": peso_planejado,
-                "Peso Total (kg)": peso_total,
-                "Atendimento (%)": percentual_atendido,
-            }
-        )
-
+        produto = demanda["produto"]
+        tabela_final.append({
+            "Largura (mm)": largura,
+            "Produto": produto,
+            "Demanda Planejada (kg)": peso_planejado,
+            "Peso Total (kg)": peso_total,
+            "Atendimento (%)": percentual_atendido,
+        })
     return pd.DataFrame(tabela_final)
-
+    
 # Botão para calcular
 if st.button("Calcular"):
     melhor_resultado = None
