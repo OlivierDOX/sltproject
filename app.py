@@ -21,7 +21,7 @@ larguras_bobina = [1192, 1191, 1190, 1189, 1188]
 peso_bobina = 17715
 
 # Entrada de demandas
-demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000\\n197 ; 30000")
+demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000\n197 ; 30000")
 # Processar demandas
 demands = []
 for line in demands_input.strip().split("\n"):
@@ -31,6 +31,7 @@ for line in demands_input.strip().split("\n"):
     except ValueError:
         st.error("Formato de demandas inválido! Use largura ; peso por linha.")
         st.stop()
+
 # Definições dos produtos
 produtos = {
     105: "Perfil UDC Enrijecido 50x25x10x2,00x6000mm",
@@ -92,47 +93,13 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     resultado = []
     for i, combinacao in enumerate(combinacoes):
         if x[i].varValue > 0:
-            pesos_por_largura = [largura * proporcao for largura in combinacao]
-            combinacao_com_pesos = [
-                f"{largura} | {round(peso, 2)} kg"
-                for largura, peso in zip(combinacao, pesos_por_largura)
-            ]
-            puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
-            resultado.append(
-                {
-                    "Plano de Corte": combinacao_com_pesos,
-                    "Quantidade": int(x[i].varValue),
-                    "Largura Total": sum(combinacao),
-                    "Puxada": puxada,
-                }
-            )
+            resultado.append({
+                "Plano de Corte": combinacao,
+                "Quantidade": int(x[i].varValue),
+                "Largura Total": sum(combinacao)
+            })
     return pd.DataFrame(resultado)
 
-def gerar_tabela_final(resultado, demandas, proporcao, produtos):
-    pesos_totais = {demanda["width"]: 0 for demanda in demandas}
-    for _, linha in resultado.iterrows():
-        combinacao = linha["Plano de Corte"]
-        quantidade = linha["Quantidade"]
-        for item in combinacao:
-            largura = int(item.split(" | ")[0])
-            pesos_totais[largura] += quantidade * largura * proporcao
-    tabela_final = []
-    for demanda in demandas:
-        largura = demanda["width"]
-        peso_planejado = demanda["weight"]
-        peso_total = pesos_totais.get(largura, 0)
-        percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
-        produto = produtos.get(largura, "Produto Desconhecido")
-        tabela_final.append(
-            {
-                "Largura (mm)": largura,
-                "Produto": produto,
-                "Demanda Planejada (kg)": peso_planejado,
-                "Peso Total (kg)": peso_total,
-                "Atendimento (%)": percentual_atendido,
-            }
-        )
-    return pd.DataFrame(tabela_final)
 # Botão para calcular
 if st.button("Calcular"):
     melhor_resultado = None
@@ -140,24 +107,21 @@ if st.button("Calcular"):
     for largura_bobina in larguras_bobina:
         resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
         if resultado is not None:
-            if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
-                melhor_resultado = resultado
-                melhor_largura = largura_bobina
+            melhor_resultado = resultado
+            melhor_largura = largura_bobina
+            break
     if melhor_resultado is not None:
-        proporcao = peso_bobina / melhor_largura
-        tabela_final = gerar_tabela_final(melhor_resultado, demands, proporcao, produtos)
         st.subheader("Melhor largura de bobina")
         st.write(f"{melhor_largura} mm")
         st.subheader("Resultado dos Planos de Corte")
         st.dataframe(melhor_resultado)
-        st.subheader("Tabela Final")
-        st.dataframe(tabela_final)
-        # Download dos arquivos
+        # Gerar arquivo TXT
+        resultado_txt = melhor_resultado.to_string(index=False)
         st.download_button(
-            label="Baixar Resultado (CSV)",
-            data=tabela_final.to_csv(index=False).encode("utf-8"),
-            file_name="resultado_corte.csv",
-            mime="text/csv"
+            label="Baixar Plano de Corte (TXT)",
+            data=resultado_txt,
+            file_name="plano_corte.txt",
+            mime="text/plain"
         )
     else:
         st.error("Nenhuma solução encontrada!")
