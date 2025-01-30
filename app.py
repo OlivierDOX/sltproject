@@ -122,7 +122,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
                 }
             )
 
-    return exibir_dataframe(pd.DataFrame(resultado))
+    return pd.DataFrame(resultado)
 
 def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     pesos_totais = {demanda["width"]: 0 for demanda in demandas}
@@ -146,7 +146,7 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
             "Peso Total (kg)": peso_total,
             "Atendimento (%)": percentual_atendido,
         })
-    return exibir_dataframe(pd.DataFrame(tabela_final))
+    return pd.DataFrame(tabela_final)
 
 
 
