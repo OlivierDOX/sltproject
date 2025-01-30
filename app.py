@@ -40,26 +40,18 @@ produtos = {
     343: "Perfil UDC Simples 200x75x2,00x6000mm"
 }
 
-# Estado persistente para armazenar demandas
-if "demands" not in st.session_state:
-    st.session_state.demands = []
-
-# Entrada de demandas
-st.subheader("Adicionar Demanda")
-produto_selecionado = st.selectbox("Selecione o Produto", list(produtos.values()))
-peso = st.number_input("Peso (kg)", min_value=1, value=10000, step=1)
-if st.button("Adicionar"):
-    largura = [key for key, value in produtos.items() if value == produto_selecionado][0]
-    st.session_state.demands.append({"Produto": produto_selecionado, "width": largura, "weight": peso})
-
-# Exibir demandas adicionadas
-st.subheader("Demandas Selecionadas")
-if st.session_state.demands:
-    st.write(pd.DataFrame(st.session_state.demands))
-else:
-    st.write("Nenhuma demanda adicionada.")
-
 larguras_slitters = list(produtos.keys())
+
+# Seleção de perfis
+st.subheader("Selecione os Perfis e Informe os Pesos")
+selecionados = st.multiselect("Escolha os perfis", list(produtos.values()))
+demands = []
+
+for perfil in selecionados:
+    largura = [key for key, value in produtos.items() if value == perfil][0]
+    peso = st.number_input(f"Peso para {perfil} (kg)", min_value=0, step=1000)
+    if peso > 0:
+        demands.append({"width": largura, "weight": peso})
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
@@ -74,12 +66,15 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
     if not combinacoes:
         return None
+
     problema = LpProblem("Problema_de_Corte", LpMinimize)
     x = LpVariable.dicts("Plano", range(len(combinacoes)), lowBound=0, cat="Integer")
     problema += lpSum(x[i] for i in range(len(combinacoes))), "Minimizar_Bobinas"
+
     for demanda in demandas:
         largura = demanda["width"]
         peso_necessario = demanda["weight"]
+        
         problema += (
             lpSum(
                 x[i] * combinacao.count(largura) * proporcao * largura
@@ -94,26 +89,55 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
             ) <= peso_necessario * limite_superior,
             f"Atender_Maxima_{largura}",
         )
+
     problema.solve(PULP_CBC_CMD(msg=False))
     if problema.status != 1:
         return None
+
     resultado = []
     for i, combinacao in enumerate(combinacoes):
         if x[i].varValue > 0:
-            resultado.append({"Plano de Corte": combinacao, "Quantidade": int(x[i].varValue)})
+            resultado.append(
+                {"Plano de Corte": combinacao, "Quantidade": int(x[i].varValue)}
+            )
     return pd.DataFrame(resultado)
+
+def gerar_tabela_final(resultado, demandas, proporcao, produtos):
+    tabela_final = []
+    for demanda in demandas:
+        largura = demanda["width"]
+        peso_planejado = demanda["weight"]
+        produto = produtos.get(largura, "Produto Desconhecido")
+        tabela_final.append(
+            {"Largura (mm)": largura, "Produto": produto, "Demanda Planejada (kg)": peso_planejado}
+        )
+    return pd.DataFrame(tabela_final)
 
 # Botão para calcular
 if st.button("Calcular"):
     melhor_resultado = None
     melhor_largura = None
+    
     for largura_bobina in larguras_bobina:
-        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, st.session_state.demands)
+        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
         if resultado is not None:
-            melhor_resultado = resultado
-            melhor_largura = largura_bobina
+            if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
+                melhor_resultado = resultado
+                melhor_largura = largura_bobina
+
     if melhor_resultado is not None:
+        proporcao = peso_bobina / melhor_largura
+        tabela_final = gerar_tabela_final(melhor_resultado, demands, proporcao, produtos)
+        
+        st.subheader("Melhor largura de bobina")
+        st.write(f"{melhor_largura} mm")
+        
         st.subheader("Resultado dos Planos de Corte")
         st.dataframe(melhor_resultado)
+        
+        st.subheader("Tabela Final")
+        st.dataframe(tabela_final)
+        
+        st.download_button("Baixar Resultado (CSV)", tabela_final.to_csv(index=False).encode("utf-8"), "resultado_corte.csv", "text/csv")
     else:
         st.error("Nenhuma solução encontrada!")
