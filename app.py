@@ -3,7 +3,7 @@ import pandas as pd
 from itertools import combinations_with_replacement
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, PULP_CBC_CMD
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="centered")
 
 st.title("Cálculo de Planos de Corte de Bobinas")
 
@@ -143,6 +143,10 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
             "Atendimento (%)": percentual_atendido,
         })
     return pd.DataFrame(tabela_final)
+
+
+def exibir_dataframe(df):
+    st.dataframe(df, use_container_width=True)
 
     
 # Botão para calcular
