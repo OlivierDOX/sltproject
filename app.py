@@ -118,9 +118,9 @@ if st.button("Calcular"):
         # Gerar arquivo TXT
         resultado_txt = melhor_resultado.to_string(index=False)
         st.download_button(
-            label="Baixar Plano de Corte (TXT)",
+            label="Baixar Resultado (TXT)",
             data=resultado_txt,
-            file_name="plano_corte.txt",
+            file_name="resultado_corte.txt",
             mime="text/plain"
         )
     else:
