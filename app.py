@@ -3,38 +3,14 @@ import pandas as pd
 from itertools import combinations_with_replacement
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, PULP_CBC_CMD
 
-st.title("Cálculo de Planos de Corte de Bobinas")
+# Configuração inicial
+st.title("Otimização de Corte de Bobinas")
 
-# Entradas do usuário
-limite_inferior = st.text_input("Limite Inferior (%)", "90")
-limite_superior = st.text_input("Limite Superior (%)", "130")
+# Entrada do usuário para limites superior e inferior
+limite_inferior = st.number_input("Limite Inferior (%)", min_value=0.0, max_value=2.0, value=0.90, step=0.01)
+limite_superior = st.number_input("Limite Superior (%)", min_value=0.0, max_value=2.0, value=1.30, step=0.01)
 
-try:
-    limite_inferior = float(limite_inferior) / 100
-    limite_superior = float(limite_superior) / 100
-except ValueError:
-    st.error("Os limites inferior e superior devem ser números válidos em porcentagem.")
-    st.stop()
-
-# Largura da bobina fixa
-larguras_bobina = [1192, 1191, 1190, 1189, 1188]
-peso_bobina = 17715
-
-# Entrada de demandas
-demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000\\n197 ; 30000")
-
-
-# Processar demandas
-demands = []
-for line in demands_input.strip().split("\n"):
-    try:
-        width, weight = map(int, line.split(";"))
-        demands.append({"width": width, "weight": weight})
-    except ValueError:
-        st.error("Formato de demandas inválido! Use largura ; peso por linha.")
-        st.stop()
-
-# Definições dos produtos
+# Lista de produtos
 produtos = {
     105: "Perfil UDC Enrijecido 50x25x10x2,00x6000mm",
     170: "Perfil UDC Enrijecido 75x40x15x2,00x6000mm",
@@ -54,7 +30,16 @@ produtos = {
     343: "Perfil UDC Simples 200x75x2,00x6000mm"
 }
 
-larguras_slitters = list(produtos.keys())
+larguras_bobina = [1192, 1191, 1190, 1189, 1188]
+peso_bobina = 17715
+
+# Seleção de produtos pelo usuário
+produtos_selecionados = st.multiselect("Selecione os produtos", options=list(produtos.keys()), format_func=lambda x: produtos[x])
+
+demands = []
+for prod in produtos_selecionados:
+    peso = st.number_input(f"Peso para {produtos[prod]} (kg)", min_value=1, value=10000, step=1000)
+    demands.append({"width": prod, "weight": peso})
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
@@ -66,125 +51,56 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
 
 def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demandas):
     proporcao = peso_bobina / largura_bobina
-
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
-
     if not combinacoes:
         return None
-
+    
     problema = LpProblem("Problema_de_Corte", LpMinimize)
     x = LpVariable.dicts("Plano", range(len(combinacoes)), lowBound=0, cat="Integer")
-
     problema += lpSum(x[i] for i in range(len(combinacoes))), "Minimizar_Bobinas"
-
+    
     for demanda in demandas:
         largura = demanda["width"]
         peso_necessario = demanda["weight"]
-
         problema += (
-            lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
-                for i, combinacao in enumerate(combinacoes)
-            ) >= peso_necessario * limite_inferior,
+            lpSum(x[i] * combinacao.count(largura) * proporcao * largura for i, combinacao in enumerate(combinacoes)) >= peso_necessario * limite_inferior,
             f"Atender_Minima_{largura}",
         )
         problema += (
-            lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
-                for i, combinacao in enumerate(combinacoes)
-            ) <= peso_necessario * limite_superior,
+            lpSum(x[i] * combinacao.count(largura) * proporcao * largura for i, combinacao in enumerate(combinacoes)) <= peso_necessario * limite_superior,
             f"Atender_Maxima_{largura}",
         )
-
+    
     problema.solve(PULP_CBC_CMD(msg=False))
-
+    
     if problema.status != 1:
         return None
-
+    
     resultado = []
     for i, combinacao in enumerate(combinacoes):
         if x[i].varValue > 0:
-            pesos_por_largura = [largura * proporcao for largura in combinacao]
-            combinacao_com_pesos = [
-                f"{largura} | {round(peso, 2)} kg"
-                for largura, peso in zip(combinacao, pesos_por_largura)
-            ]
-
-            puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
-
-            resultado.append(
-                {
-                    "Plano de Corte": combinacao_com_pesos,
-                    "Quantidade": int(x[i].varValue),
-                    "Largura Total": sum(combinacao),
-                    "Puxada": puxada,
-                }
-            )
-
+            resultado.append({"Plano de Corte": combinacao, "Quantidade": int(x[i].varValue)})
+    
     return pd.DataFrame(resultado)
 
-def gerar_tabela_final(resultado, demandas, proporcao, produtos):
-    pesos_totais = {demanda["width"]: 0 for demanda in demandas}
-
-    for _, linha in resultado.iterrows():
-        combinacao = linha["Plano de Corte"]
-        quantidade = linha["Quantidade"]
-
-        for item in combinacao:
-            largura = int(item.split(" | ")[0])
-            pesos_totais[largura] += quantidade * largura * proporcao
-
-    tabela_final = []
-    for demanda in demandas:
-        largura = demanda["width"]
-        peso_planejado = demanda["weight"]
-        peso_total = pesos_totais.get(largura, 0)
-        percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
-        produto = produtos.get(largura, "Produto Desconhecido")
-
-        tabela_final.append(
-            {
-                "Largura (mm)": largura,
-                "Produto": produto,
-                "Demanda Planejada (kg)": peso_planejado,
-                "Peso Total (kg)": peso_total,
-                "Atendimento (%)": percentual_atendido,
-            }
-        )
-
-    return pd.DataFrame(tabela_final)
-
-# Botão para calcular
-if st.button("Calcular"):
+if st.button("Calcular Plano de Corte"):
     melhor_resultado = None
     melhor_largura = None
-
+    
     for largura_bobina in larguras_bobina:
-        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
+        resultado = resolver_problema_corte(produtos_selecionados, largura_bobina, peso_bobina, demands)
         if resultado is not None:
             if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                 melhor_resultado = resultado
                 melhor_largura = largura_bobina
-
+    
     if melhor_resultado is not None:
-        proporcao = peso_bobina / melhor_largura
-        tabela_final = gerar_tabela_final(melhor_resultado, demands, proporcao, produtos)
-
-        st.subheader("Melhor largura de bobina")
-        st.write(f"{melhor_largura} mm")
-
-        st.subheader("Resultado dos Planos de Corte")
+        st.write(f"Melhor largura de bobina: {melhor_largura}")
         st.dataframe(melhor_resultado)
-
-        st.subheader("Tabela Final")
-        st.dataframe(tabela_final)
-
-        # Download dos arquivos
-        st.download_button(
-            label="Baixar Resultado (CSV)",
-            data=tabela_final.to_csv(index=False).encode("utf-8"),
-            file_name="resultado_corte.csv",
-            mime="text/csv"
-        )
+        
+        # Criando arquivo para download
+        txt_output = f"Melhor largura de bobina: {melhor_largura}\n\n"
+        txt_output += melhor_resultado.to_string(index=False)
+        st.download_button("Baixar resultado", txt_output, "resultado.txt")
     else:
-        st.error("Nenhuma solução encontrada!")
+        st.write("Nenhuma solução encontrada.")
