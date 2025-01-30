@@ -4,7 +4,7 @@ from itertools import combinations_with_replacement
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, PULP_CBC_CMD
 
 st.set_page_config(layout="wide")
-st.markdown("<style> .block-container { max-width: 70%; } </style>", unsafe_allow_html=True)
+st.markdown("<style> .block-container { max-width: 60%; } </style>", unsafe_allow_html=True)
 
 st.title("Cálculo de Planos de Corte de Bobinas")
 
