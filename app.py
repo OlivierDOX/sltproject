@@ -104,7 +104,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
         if x[i].varValue > 0:
             pesos_por_largura = [largura * proporcao for largura in combinacao]
             combinacao_com_pesos = [
-                f"{largura} | {round(peso, 2)} kg"
+                f"{largura} | {round(peso, 0)} kg"
                 for largura, peso in zip(combinacao, pesos_por_largura)
             ]
 
@@ -152,7 +152,7 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     }
     tabela_final.append(totais)
     df_final = pd.DataFrame(tabela_final)
-    df_final = df_final.applymap(lambda x: f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x)
+    df_final = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
     return df_final
 
 
