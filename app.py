@@ -118,7 +118,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
     return pd.DataFrame(resultado)
 
-def gerar_tabela_final(resultado, demandas, proporcao):
+def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     pesos_totais = {demanda["width"]: 0 for demanda in demandas}
     for _, linha in resultado.iterrows():
         combinacao = linha["Plano de Corte"]
