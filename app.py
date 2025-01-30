@@ -47,9 +47,7 @@ larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
 with st.expander("Selecione os produtos"):
-    df_produtos = pd.DataFrame({"Produto": list(produtos.keys()), "Selecionado": [False] * len(produtos)})
-    df_editado = st.data_editor(df_produtos, num_rows="fixed", use_container_width=True, hide_index=True)
-    produtos_selecionados = df_editado[df_editado["Selecionado"] == True]["Produto"].tolist()
+    produtos_selecionados = [produto for produto in produtos.keys() if st.checkbox(produto)]
 
 demands = []
 for produto in produtos_selecionados:
@@ -102,9 +100,6 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     if problema.status != 1:
         return None
 
-def exibir_dataframe(df):
-    st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
-    
     resultado = []
     for i, combinacao in enumerate(combinacoes):
         if x[i].varValue > 0:
@@ -162,6 +157,8 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     return df_final
 
 
+def exibir_dataframe(df):
+    st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
 
 # Botão para calcular
