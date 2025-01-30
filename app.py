@@ -40,19 +40,22 @@ produtos = {
     343: "Perfil UDC Simples 200x75x2,00x6000mm"
 }
 
+# Estado persistente para armazenar demandas
+if "demands" not in st.session_state:
+    st.session_state.demands = []
+
 # Entrada de demandas
-demands = []
 st.subheader("Adicionar Demanda")
 produto_selecionado = st.selectbox("Selecione o Produto", list(produtos.values()))
 peso = st.number_input("Peso (kg)", min_value=1, value=10000, step=1)
 if st.button("Adicionar"):
     largura = [key for key, value in produtos.items() if value == produto_selecionado][0]
-    demands.append({"Produto": produto_selecionado, "width": largura, "weight": peso})
+    st.session_state.demands.append({"Produto": produto_selecionado, "width": largura, "weight": peso})
 
 # Exibir demandas adicionadas
 st.subheader("Demandas Selecionadas")
-if demands:
-    st.write(pd.DataFrame(demands))
+if st.session_state.demands:
+    st.write(pd.DataFrame(st.session_state.demands))
 else:
     st.write("Nenhuma demanda adicionada.")
 
@@ -105,7 +108,7 @@ if st.button("Calcular"):
     melhor_resultado = None
     melhor_largura = None
     for largura_bobina in larguras_bobina:
-        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
+        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, st.session_state.demands)
         if resultado is not None:
             melhor_resultado = resultado
             melhor_largura = largura_bobina
