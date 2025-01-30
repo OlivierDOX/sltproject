@@ -47,7 +47,7 @@ produto_selecionado = st.selectbox("Selecione o Produto", list(produtos.values()
 peso = st.number_input("Peso (kg)", min_value=1, value=10000, step=1)
 if st.button("Adicionar"):
     largura = [key for key, value in produtos.items() if value == produto_selecionado][0]
-    demands.append({"width": largura, "weight": peso})
+    demands.append({"Produto": produto_selecionado, "width": largura, "weight": peso})
 
 # Exibir demandas adicionadas
 st.subheader("Demandas Selecionadas")
