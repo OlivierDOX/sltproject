@@ -151,11 +151,13 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
         "Atendimento (%)": round(sum(pesos_totais.values()) / sum(d["weight"] for d in demandas) * 100, 1) if sum(d["weight"] for d in demandas) > 0 else 0,
     }
     tabela_final.append(totais)
-    return pd.DataFrame(tabela_final)
+    df_final = pd.DataFrame(tabela_final)
+    df_final = df_final.applymap(lambda x: f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x)
+    return df_final
 
 
 def exibir_dataframe(df):
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
 
 # Botão para calcular
