@@ -132,7 +132,7 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
         peso_planejado = demanda["weight"]
         peso_total = pesos_totais.get(largura, 0)
         percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
-        produto = demanda["produto"]
+        produto = next((key for key, value in produtos.items() if value == largura), "Produto Desconhecido")
         tabela_final.append({
             "Largura (mm)": largura,
             "Produto": produto,
