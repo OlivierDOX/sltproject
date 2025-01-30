@@ -140,9 +140,17 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
             "Largura (mm)": largura,
             "Produto": produto,
             "Demanda Planejada (kg)": peso_planejado,
-            "Peso Total (kg)": peso_total,
-            "Atendimento (%)": percentual_atendido,
+            "Peso Total (kg)": round(peso_total, 0),
+            "Atendimento (%)": round(percentual_atendido, 1),
         })
+    totais = {
+        "Largura (mm)": "Total",
+        "Produto": "",
+        "Demanda Planejada (kg)": sum(d["weight"] for d in demandas),
+        "Peso Total (kg)": round(sum(pesos_totais.values()), 0),
+        "Atendimento (%)": round(sum(pesos_totais.values()) / sum(d["weight"] for d in demandas) * 100, 1) if sum(d["weight"] for d in demandas) > 0 else 0,
+    }
+    tabela_final.append(totais)
     return pd.DataFrame(tabela_final)
 
 
