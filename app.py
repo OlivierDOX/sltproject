@@ -20,20 +20,6 @@ except ValueError:
 larguras_bobina = [1192, 1191, 1190, 1189, 1188]
 peso_bobina = 17715
 
-# Entrada de demandas
-demands_input = st.text_area("Demandas (formato: largura ; peso por linha, ex: 105 ; 10000)", "105 ; 10000\\n197 ; 30000")
-
-
-# Processar demandas
-demands = []
-for line in demands_input.strip().split("\n"):
-    try:
-        width, weight = map(int, line.split(";"))
-        demands.append({"width": width, "weight": weight})
-    except ValueError:
-        st.error("Formato de demandas inválido! Use largura ; peso por linha.")
-        st.stop()
-
 # Definições dos produtos
 produtos = {
     105: "Perfil UDC Enrijecido 50x25x10x2,00x6000mm",
@@ -54,6 +40,16 @@ produtos = {
     343: "Perfil UDC Simples 200x75x2,00x6000mm"
 }
 
+# Seleção dos produtos
+selected_products = st.multiselect("Selecione os produtos", options=list(produtos.keys()), format_func=lambda x: produtos[x])
+
+# Entrada de pesos para os produtos selecionados
+demands = []
+for product in selected_products:
+    weight = st.number_input(f"Peso para {produtos[product]}", min_value=1, step=1)
+    demands.append({"product": product, "weight": weight})
+
+# Lista de larguras disponíveis
 larguras_slitters = list(produtos.keys())
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
