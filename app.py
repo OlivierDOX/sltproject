@@ -123,7 +123,8 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     for _, linha in resultado.iterrows():
         combinacao = linha["Plano de Corte"]
         quantidade = linha["Quantidade"]
-        for largura in combinacao:
+        for item in combinacao:
+            largura = int(str(item).split('|')[0].strip())
             pesos_totais[largura] += quantidade * largura * proporcao
     tabela_final = []
     for demanda in demandas:
@@ -140,6 +141,7 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
             "Atendimento (%)": percentual_atendido,
         })
     return pd.DataFrame(tabela_final)
+
     
 # Botão para calcular
 if st.button("Calcular"):
