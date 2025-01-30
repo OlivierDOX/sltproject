@@ -97,7 +97,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     if problema.status != 1:
         return None
 
-    return problema
+    return pd.DataFrame([{"Quantidade": x[i].varValue, "Combinacao": combinacoes[i]} for i in range(len(combinacoes)) if x[i].varValue > 0])
 
     resultado = []
     for i, combinacao in enumerate(combinacoes):
