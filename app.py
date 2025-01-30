@@ -102,6 +102,9 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     if problema.status != 1:
         return None
 
+    def exibir_dataframe(df):
+    st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
+    
     resultado = []
     for i, combinacao in enumerate(combinacoes):
         if x[i].varValue > 0:
@@ -122,7 +125,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
                 }
             )
 
-    return pd.DataFrame(resultado)
+    return exibir_dataframe(pd.DataFrame(resultado))
 
 def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     pesos_totais = {demanda["width"]: 0 for demanda in demandas}
@@ -156,11 +159,10 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
     tabela_final.append(totais)
     df_final = pd.DataFrame(tabela_final)
     df_final = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
-    return df_final
+    return exibir_dataframe(df_final)
 
 
-def exibir_dataframe(df):
-    st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
+
 
 
 # Botão para calcular
