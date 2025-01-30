@@ -47,6 +47,9 @@ larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
 with st.expander("Selecione os produtos"):
+    filtro_produto = st.text_input("Filtrar produtos", "")
+    produtos_filtrados = [produto for produto in produtos.keys() if filtro_produto.lower() in produto.lower()]
+    produtos_selecionados = [produto for produto in produtos_filtrados if st.checkbox(produto)]
     produtos_selecionados = [produto for produto in produtos.keys() if st.checkbox(produto)]
 
 demands = []
