@@ -147,7 +147,7 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
 
 
 def exibir_dataframe(df):
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50))
 
     
 # Botão para calcular
